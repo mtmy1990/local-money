@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Money Transfer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .form-section, .transaction-section {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .transaction-list {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .transaction-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Local Money Transfer</h1>
+            <p>Send money within your community in South Sudan</p>
+        </div>
+        
+        <div class="main">
+            <!-- Transfer Form -->
+            <div class="form-section">
+                <h2>Send Money</h2>
+                <form id="transferForm">
+                    <div class="form-group">
+                        <label>Your Phone Number</label>
+                        <input type="tel" id="sender" placeholder="07XX XXX XXX" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Recipient Phone</label>
+                        <input type="tel" id="receiver" placeholder="07XX XXX XXX" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Amount (SSP)</label>
+                        <input type="number" id="amount" min="10" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select id="method">
+                            <option value="mobile">Mobile Money</option>
+                            <option value="cash">Cash Agent</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit">Send Money</button>
+                </form>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="transaction-section">
+                <h2>Recent Transactions</h2>
+                <div class="transaction-list" id="transactions">
+                    <!-- Transactions will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple transaction storage
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+        // Form submission handler
+        document.getElementById('transferForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const transaction = {
+                sender: document.getElementById('sender').value,
+                receiver: document.getElementById('receiver').value,
+                amount: document.getElementById('amount').value,
+                method: document.getElementById('method').value,
+                date: new Date().toLocaleString(),
+                status: 'Pending'
+            };
+
+            if(validateTransaction(transaction)) {
+                transactions.unshift(transaction);
+                updateTransactions();
+                saveToLocalStorage();
+                alert('Transaction initiated successfully!');
+                e.target.reset();
+            }
+        });
+
+        // Validation function
+        function validateTransaction(tx) {
+            if(tx.sender === tx.receiver) {
+                alert('Sender and receiver cannot be the same!');
+                return false;
+            }
+            if(tx.amount < 10) {
+                alert('Minimum amount is KES 10');
+                return false;
+            }
+            return true;
+        }
+
+        // Update transaction list
+        function updateTransactions() {
+            const container = document.getElementById('transactions');
+            container.innerHTML = transactions.map(tx => `
+                <div class="transaction-item">
+                    <div>
+                        <strong>${tx.amount} KES</strong><br>
+                        ${tx.sender} → ${tx.receiver}
+                    </div>
+                    <div>
+                        ${tx.method}<br>
+                        <small>${tx.date}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Save to localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+
+        // Initial load
+        updateTransactions();
+    </script>
+</body>
+</html>
